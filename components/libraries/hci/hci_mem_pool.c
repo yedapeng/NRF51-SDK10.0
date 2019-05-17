@@ -128,7 +128,7 @@ uint32_t hci_mem_pool_rx_produce(uint32_t length, void ** pp_buffer)
         }
         else
         {
-            err_code = NRF_ERROR_DATA_SIZE;    
+            err_code = NRF_ERROR_DATA_SIZE;
         }        
     }
     else

@@ -300,7 +300,7 @@ static void dfu_error_notify(ble_dfu_t * p_dfu, uint32_t err_code)
  */
 static void start_data_process(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
 {
-    uint32_t err_code;
+    static uint32_t err_code;
 
     dfu_start_packet_t  start_packet  = {.dfu_update_mode = m_update_mode};
     dfu_update_packet_t update_packet =
@@ -329,6 +329,7 @@ static void start_data_process(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
         start_packet.app_image_size = uint32_decode(p_length_data + APP_IMAGE_SIZE_OFFSET);
 
         err_code = dfu_start_pkt_handle(&update_packet);
+      __NOP();
         if (err_code != NRF_SUCCESS)
         {
             // Translate the err_code returned by the above function to DFU Response Value.

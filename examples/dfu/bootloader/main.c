@@ -185,6 +185,7 @@ int main(void)
     uint32_t err_code;
     bool     dfu_start = false;
     bool     app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
+  
 
     if (app_reset)
     {

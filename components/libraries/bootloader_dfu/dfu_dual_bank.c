@@ -144,7 +144,7 @@ static void dfu_prepare_func_app_erase(uint32_t image_size)
     // Doing a SoftDevice update thus current application must be cleared to ensure enough space
     // for new SoftDevice.
     m_dfu_state = DFU_STATE_PREPARING;
-    err_code    = pstorage_clear(&m_storage_handle_app, m_image_size);
+    err_code    = pstorage_clear(&m_storage_handle_app, 0x1C000);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -370,27 +370,29 @@ uint32_t dfu_start_pkt_handle(dfu_update_packet_t * p_packet)
     m_image_size = m_start_packet.sd_image_size + m_start_packet.bl_image_size +
                    m_start_packet.app_image_size;
     
-    if (m_start_packet.bl_image_size > DFU_BL_IMAGE_MAX_SIZE)
-    {
-        return NRF_ERROR_DATA_SIZE;
-    }
+//    if (m_start_packet.bl_image_size > DFU_BL_IMAGE_MAX_SIZE)
+//    {
+//      __NOP();
+//        return NRF_ERROR_DATA_SIZE;
+//    }
 
     if (IS_UPDATING_SD(m_start_packet))
     {
-        if (m_image_size > (DFU_IMAGE_MAX_SIZE_FULL))
-        {
-            return NRF_ERROR_DATA_SIZE;
-        }
+//        if (m_image_size > (DFU_IMAGE_MAX_SIZE_FULL))
+//        {
+//            return NRF_ERROR_DATA_SIZE;
+//        }
         m_functions.prepare  = dfu_prepare_func_app_erase;
         m_functions.cleared  = dfu_cleared_func_app;
         m_functions.activate = dfu_activate_sd;
     }
     else
     {
-        if (m_image_size > DFU_IMAGE_MAX_SIZE_BANKED)
-        {
-            return NRF_ERROR_DATA_SIZE;
-        }
+//        if (m_image_size > 0x20000)
+//        {
+//          __NOP();
+//            return NRF_ERROR_DATA_SIZE;
+//        }
 
         m_functions.prepare = dfu_prepare_func_swap_erase;
         m_functions.cleared = dfu_cleared_func_swap;
@@ -453,16 +455,21 @@ uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
         case DFU_STATE_RX_DATA_PKT:
             data_length = p_packet->params.data_packet.packet_length * sizeof(uint32_t);
 
-            if ((m_data_received + data_length) > m_image_size)
-            {
-                // The caller is trying to write more bytes into the flash than the size provided to
-                // the dfu_image_size_set function. This is treated as a serious error condition and
-                // an unrecoverable one. Hence point the variable mp_app_write_address to the top of
-                // the flash area. This will ensure that all future application data packet writes
-                // will be blocked because of the above check.
-                m_data_received = 0xFFFFFFFF;
+//            if ((m_data_received + data_length) > m_image_size)
+//            {
+//                // The caller is trying to write more bytes into the flash than the size provided to
+//                // the dfu_image_size_set function. This is treated as a serious error condition and
+//                // an unrecoverable one. Hence point the variable mp_app_write_address to the top of
+//                // the flash area. This will ensure that all future application data packet writes
+//                // will be blocked because of the above check.
+//                m_data_received = 0xFFFFFFFF;
 
-                return NRF_ERROR_DATA_SIZE;
+//                return NRF_ERROR_DATA_SIZE;
+//            }
+            
+            if (m_data_received == 0x1C000)
+            {
+              m_data_received += 0x4000;
             }
 
             // Valid peer activity detected. Hence restart the DFU timer.
@@ -789,8 +796,9 @@ uint32_t dfu_bl_image_swap(void)
     {
         uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
                                   DFU_BANK_1_REGION_START :
-                                  bootloader_settings.sd_image_start + 
-                                  bootloader_settings.sd_image_size;
+                                  0x3D000;
+      
+      //uint32_t bl_image_start = 0x3D000;
 
         sd_mbr_cmd.command               = SD_MBR_COMMAND_COPY_BL;
         sd_mbr_cmd.params.copy_bl.bl_src = (uint32_t *)(bl_image_start);
