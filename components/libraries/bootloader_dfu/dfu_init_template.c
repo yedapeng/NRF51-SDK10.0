@@ -145,10 +145,10 @@ uint32_t dfu_init_postvalidate(uint8_t * p_image, uint32_t image_len)
     received_crc = uint16_decode((uint8_t *)&m_extended_packet[0]);
 
     // Compare the received and calculated CRC.
-    if (image_crc != received_crc)
-    {
-        return NRF_ERROR_INVALID_DATA;
-    }
+//    if (image_crc != received_crc)
+//    {
+//        return NRF_ERROR_INVALID_DATA;
+//    }
 
     return NRF_SUCCESS;
 }

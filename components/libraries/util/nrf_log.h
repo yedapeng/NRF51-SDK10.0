@@ -8,7 +8,7 @@
 #define NUM_VA_ARGS(...) (sizeof((const char*[]){ 0, ##__VA_ARGS__ })/sizeof(const char*)-1)
 
 #ifndef NRF_LOG_USES_RTT
-#define NRF_LOG_USES_RTT 0
+#define NRF_LOG_USES_RTT 1
 #endif
 
 #ifndef NRF_LOG_USES_UART

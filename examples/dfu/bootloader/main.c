@@ -49,6 +49,8 @@
 #include "pstorage_platform.h"
 #include "nrf_mbr.h"
 
+#include "nrf_log.h"
+
 #if BUTTONS_NUMBER < 1
 #error "Not enough buttons on board"
 #endif
@@ -187,6 +189,12 @@ int main(void)
     bool     app_reset = (NRF_POWER->GPREGRET == BOOTLOADER_DFU_START);
   
 
+  
+  err_code = NRF_LOG_INIT();
+  APP_ERROR_CHECK(err_code);
+  NRF_LOG_PRINTF("BOOT Example\r\n");
+  
+  
     if (app_reset)
     {
         NRF_POWER->GPREGRET = 0;

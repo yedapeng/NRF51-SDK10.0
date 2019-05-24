@@ -20,6 +20,8 @@
 #include "nrf_soc.h"
 #include "app_util.h"
 
+#include "nrf_log.h"
+
 /** @file
  *
  * @defgroup persistent_storage_raw Persistent Storage Interface - Raw Mode Implementation
@@ -333,7 +335,7 @@ void pstorage_sys_event_handler(uint32_t sys_evt)
         }
     }
 }
-
+   static uint32_t              storage_addr;
 
 /**
  * @brief Function for processing of commands and issuing flash access request to the SoftDevice.
@@ -343,7 +345,7 @@ void pstorage_sys_event_handler(uint32_t sys_evt)
 static uint32_t cmd_process(void)
 {
     uint32_t              retval;
-    uint32_t              storage_addr;
+    
     cmd_queue_element_t * p_cmd;
 
     retval = NRF_ERROR_FORBIDDEN;
@@ -364,6 +366,13 @@ static uint32_t cmd_process(void)
             size          = p_cmd->size - offset;
             p_data_addr  += offset;
             storage_addr += (p_cmd->offset + offset);
+          
+//          if (storage_addr>0x364c8)
+//          {
+//            NRF_LOG_PRINTF(":%x\r\n", storage_addr);
+//          }
+          
+          
 
             if (size < SOC_MAX_WRITE_SIZE)
             {

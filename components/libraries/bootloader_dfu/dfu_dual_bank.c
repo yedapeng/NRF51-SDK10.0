@@ -31,6 +31,8 @@
 #include "nrf_mbr.h"
 #include "dfu_init.h"
 
+#include "nrf_log.h"
+
 static dfu_state_t                  m_dfu_state;                /**< Current DFU state. */
 static uint32_t                     m_image_size;               /**< Size of the image that will be transmitted. */
 
@@ -427,13 +429,19 @@ uint32_t dfu_start_pkt_handle(dfu_update_packet_t * p_packet)
     return err_code;
 }
 
+            
+uint8_t data_buff[16];// = {0x58,0x3C,0x00,0x20,0x3D,0xB0,0x03,0x00,0x57,0xB0,0x03,0x00,0x59,0xB0,0x03,0x00};
 
 uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
 {
     uint32_t   data_length;
     uint32_t   err_code;
     uint32_t * p_data;
-
+  uint32_t write_addr;
+  uint8_t count;
+  
+  static uint8_t img_buff[50];
+  
     if (p_packet == NULL)
     {
         return NRF_ERROR_NULL;
@@ -467,10 +475,10 @@ uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
 //                return NRF_ERROR_DATA_SIZE;
 //            }
             
-            if (m_data_received == 0x1C000)
-            {
-              m_data_received += 0x4000;
-            }
+//            if (m_data_received == 107740)
+//            {
+//              m_data_received += 0x4000;
+//            }
 
             // Valid peer activity detected. Hence restart the DFU timer.
             err_code = dfu_timer_restart();
@@ -481,17 +489,69 @@ uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
 
             p_data = (uint32_t *)p_packet->params.data_packet.p_data_packet;
 
-            err_code = pstorage_store(mp_storage_handle_active,
-                                          (uint8_t *)p_data,
-                                          data_length,
-                                          m_data_received);
+            if (m_data_received<=106464)
+            {
+              write_addr = m_data_received;
+            }
+            else if (m_data_received<=106480)
+            {
+              write_addr = m_data_received+24592;
+            }
+            else 
+            {
+              write_addr = m_data_received+24592+16;
+            }
+            
+            if (m_data_received == 106460)
+            {
+              for (count = 0; count<16; count ++)
+              {
+                data_buff[count] = *(((uint8_t *)p_data)+count+4);
+              }
+              
+            }
+            
+            if (write_addr == 0x20000)
+            {
+              
+              for (count = 0; count < 20; count ++)
+              {
+                img_buff[count + 16] =  *(((uint8_t *)p_data)+count);
+              }
+              
+              for (count = 0; count < 16; count ++)
+              {
+                img_buff[count] = data_buff[count];
+              }
+
+              
+              for (uint8_t count = 0; count < 36; count ++)
+              {
+                *(((uint8_t *)p_data)+count) =  img_buff[count];
+              }
+              
+              err_code = pstorage_store(mp_storage_handle_active,
+                            (uint8_t *)p_data,
+                            data_length+16,
+                            write_addr);
+            }
+            else
+            {
+              err_code = pstorage_store(mp_storage_handle_active,
+                            (uint8_t *)p_data,
+                            data_length,
+                            write_addr);
+            }
+            
+            
+            
             if (err_code != NRF_SUCCESS)
             {
                 return err_code;
             }
-
+            
             m_data_received += data_length;
-
+            
             if (m_data_received != m_image_size)
             {
                 // The entire image is not received yet. More data is expected.
@@ -796,7 +856,7 @@ uint32_t dfu_bl_image_swap(void)
     {
         uint32_t bl_image_start = (bootloader_settings.sd_image_size == 0) ?
                                   DFU_BANK_1_REGION_START :
-                                  0x3D000;
+                                  0x3C000;
       
       //uint32_t bl_image_start = 0x3D000;
 

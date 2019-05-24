@@ -352,7 +352,7 @@ uint32_t bootloader_dfu_sd_update_continue(void)
 
     err_code = dfu_bl_image_swap();
     APP_ERROR_CHECK(err_code);
-
+    __nop();
     return err_code;
 }
 
